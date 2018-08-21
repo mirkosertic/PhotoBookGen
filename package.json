@@ -1,0 +1,14 @@
+{
+  "name": "photobookgen",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/generator.js"
+  },
+  "dependencies": {
+    "debug": "^3.1.0",
+    "hbs": "~4.0.1",
+    "imagemin": "^6.0.0",
+    "imagemin-webp": "^4.1.0"
+  }
+}
