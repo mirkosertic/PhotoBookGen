@@ -1,26 +1,115 @@
 #!/usr/bin/env node
 
-var app = require('../app');
+const app = require('../app');
 
-var sharp = require("sharp");
-var debug = require('debug')('PhotoBookGen')
+const fs = require('fs');
+const path = require('path');
+const sharp = require("sharp");
+const handlebars = require('handlebars')
+const debug = require('debug')('PhotoBookGen')
 
-var outputFolder = "D:\\IdeaProjects\\PhotoBookGen\\generated\\images";            // Output folder
-var JPEGImages = "D:\\owncloud_hochzeit\\Hochzeit\\Fotos\\*.jpg";        // JPEG images
+const outputFolder = app.configuration.outputFolder;
+const JPEGImages = app.configuration.imagesSourceFolder;
 
-console.log("Generating WebP files in  " +  outputFolder);
+console.log("Generating Files in  " +  outputFolder);
 
-sharp("D:\\IdeaProjects\\PhotoBookGen\\generated\\source\\Hochzeit_22.07.2018-1.jpg")
-    .toFile("D:\\IdeaProjects\\PhotoBookGen\\generated\\images\\large.webp");
+// We search for all Images for our Gallery
+fs.readdir(app.configuration.imagesSourceFolder, function(error, files) {
 
-sharp("D:\\IdeaProjects\\PhotoBookGen\\generated\\source\\Hochzeit_22.07.2018-1.jpg")
-    .resize(400)
-    .toFile("D:\\IdeaProjects\\PhotoBookGen\\generated\\images\\small.webp");
-
-sharp("D:\\IdeaProjects\\PhotoBookGen\\generated\\source\\Hochzeit_22.07.2018-1.jpg")
-    .resize(400)
-    .jpeg({
-        quality: 90,
-        progressive: true
+    // We need a sorted list of them
+    const sorted = files.map(function (fileName) {
+        return {
+            name: fileName,
+            time: fs.statSync(path.join(app.configuration.imagesSourceFolder, fileName)).mtime.getTime()
+        };
     })
-    .toFile("D:\\IdeaProjects\\PhotoBookGen\\generated\\images\\small.jpeg");
+    .sort(function (a, b) {
+            return a.time - b.time; })
+    .map(function (v) {
+            return v.name; });
+
+    const imagesBasePath = path.join(app.configuration.outputFolder, "images");
+    if (!fs.existsSync(imagesBasePath)){
+        fs.mkdirSync(imagesBasePath);
+    }
+
+    // Then we have to transform them to WebP and JPEG original and thumbnails
+    for (var i=0;i<sorted.length;i++) {
+
+        const nameOnDisk = path.join(JPEGImages, sorted[i]);
+        const nameWithoutExtention = path.basename(sorted[i], path.extname(sorted[i]));
+
+        // Original to WebP
+        console.log("Transforming " + nameOnDisk + " to WebP");
+        sharp(nameOnDisk)
+            .toFile(path.join(imagesBasePath, nameWithoutExtention + ".webp"), function(error, info) {
+            });
+
+        console.log("Transforming " + nameOnDisk + " to Progressive-JPEG");
+        sharp(nameOnDisk)
+            .jpeg({
+                quality: app.configuration.jpeg.quality,
+                progressive: true
+            })
+            .toFile(path.join(imagesBasePath, nameWithoutExtention + ".jpg"), function(error, info) {
+            });
+
+        console.log("Transforming " + nameOnDisk + " to Small-Size WebP");
+        sharp(nameOnDisk)
+            .resize(400)
+            .toFile(path.join(imagesBasePath, nameWithoutExtention + "_small.webp"), function(error, info) {
+            });
+
+        console.log("Transforming " + nameOnDisk + " to Small-Size JPEG");
+        sharp(nameOnDisk)
+            .resize(400)
+            .jpeg({
+                quality: app.configuration.jpeg.quality,
+                progressive: true
+            })
+            .toFile(path.join(imagesBasePath, nameWithoutExtention + "_small.jpg"), function(error, info) {
+            });
+    }
+
+    // And finally we generate the html files
+    console.log("Generating HTML files");
+
+    function htmlFilenameFor(index) {
+        return "index" + (index > 0 ? index : '') + ".html"
+    }
+
+    fs.readFile("template.hbs", "utf8", function(error, data) {
+
+        const template = handlebars.compile(data);
+
+        for (var i=0;i<sorted.length;i++) {
+
+            const nameWithoutExtention = path.basename(sorted[i], path.extname(sorted[i]));
+            const currentFileName = htmlFilenameFor(i);
+
+            const templateData = {
+                gallery: app.configuration.html,
+                current: {
+                    currentFileName: currentFileName,
+                    currentImageJPEG: 'images/' + nameWithoutExtention + ".jpg",
+                    currentImageWebP: 'images/' + nameWithoutExtention + ".webp",
+                },
+                navigation: {
+                    index: (i + 1),
+                    size: sorted.length,
+                    prevLink: i>0 ? htmlFilenameFor(i - 1) : undefined,
+                    nextLink: i<sorted.length - 1 ? htmlFilenameFor(i + 1) : undefined,
+                },
+                prev: [],
+                next: []
+            };
+
+            const output = fs.createWriteStream(path.join(app.configuration.outputFolder, currentFileName));
+            output.once("open", function(fd) {
+                const html = template(templateData);
+                output.write(html);
+                output.end();
+            });
+        }
+    });
+});
