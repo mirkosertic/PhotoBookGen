@@ -1,8 +1,8 @@
 var app = {
 
     configuration: {
-        imagesSourceFolder : '/home/sertic/ownCloud/Fotos/Fotoshooting 2016',
-        outputFolder: '/home/sertic/temp/album',
+        imagesSourceFolder : 'D:\\owncloud\\Fotos\\Fotoshooting 2016',
+        outputFolder: 'D:\\IdeaProjects\\PhotoBookGen\\generated',
         jpeg: {
             quality: 95
         },

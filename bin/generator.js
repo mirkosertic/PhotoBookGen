@@ -56,13 +56,13 @@ fs.readdir(app.configuration.imagesSourceFolder, function(error, files) {
 
         console.log("Transforming " + nameOnDisk + " to Small-Size WebP");
         sharp(nameOnDisk)
-            .resize(400)
+            .resize(300)
             .toFile(path.join(imagesBasePath, nameWithoutExtention + "_small.webp"), function(error, info) {
             });
 
         console.log("Transforming " + nameOnDisk + " to Small-Size JPEG");
         sharp(nameOnDisk)
-            .resize(400)
+            .resize(300)
             .jpeg({
                 quality: app.configuration.jpeg.quality,
                 progressive: true
@@ -87,12 +87,34 @@ fs.readdir(app.configuration.imagesSourceFolder, function(error, files) {
             const nameWithoutExtention = path.basename(sorted[i], path.extname(sorted[i]));
             const currentFileName = htmlFilenameFor(i);
 
+            const previousImages = [];
+            for (var j=i-1; j>=0 && j>=i-4;j--) {
+
+                const prevNameWithoutExtention = path.basename(sorted[j], path.extname(sorted[i]));
+
+                previousImages.push({
+                    imageJPEG: 'images/' + prevNameWithoutExtention + "_small.jpg",
+                    imageWebP: 'images/' + prevNameWithoutExtention + "_small.webp",
+                });
+            }
+
+            const nextImages = [];
+            for (var j=i + 1; j <= i + 4 && j<sorted.length;j++) {
+
+                const prevNameWithoutExtention = path.basename(sorted[j], path.extname(sorted[j]));
+
+                nextImages.push({
+                    imageJPEG: 'images/' + prevNameWithoutExtention + "_small.jpg",
+                    imageWebP: 'images/' + prevNameWithoutExtention + "_small.webp",
+                });
+            }
+
             const templateData = {
                 gallery: app.configuration.html,
                 current: {
-                    currentFileName: currentFileName,
-                    currentImageJPEG: 'images/' + nameWithoutExtention + ".jpg",
-                    currentImageWebP: 'images/' + nameWithoutExtention + ".webp",
+                    fileName: currentFileName,
+                    imageJPEG: 'images/' + nameWithoutExtention + ".jpg",
+                    imageWebP: 'images/' + nameWithoutExtention + ".webp",
                 },
                 navigation: {
                     index: (i + 1),
@@ -100,8 +122,8 @@ fs.readdir(app.configuration.imagesSourceFolder, function(error, files) {
                     prevLink: i>0 ? htmlFilenameFor(i - 1) : undefined,
                     nextLink: i<sorted.length - 1 ? htmlFilenameFor(i + 1) : undefined,
                 },
-                prev: [],
-                next: []
+                prev: previousImages,
+                next: nextImages
             };
 
             const output = fs.createWriteStream(path.join(app.configuration.outputFolder, currentFileName));
