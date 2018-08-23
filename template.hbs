@@ -12,7 +12,7 @@
 
             div {
                 display: grid;
-                grid-template-columns: 1fr 4fr 1fr 1rem;
+                grid-template-columns: 1fr 6fr 1fr 1rem;
                 grid-template-rows: 2rem 1fr 1fr 1fr 1fr 2rem;
                 grid-gap: 1rem;
                 width: 100%;
@@ -88,14 +88,14 @@
                 filter: brightness(50%);
             }
 
+            .nofilter {
+                filter: none;
+            }
+
             picture:nth-child(1) {
                 grid-column: 2;
                 grid-row-start: 2;
                 grid-row-end: 6;
-            }
-
-            picture:nth-child(1) img {
-                filter: none;
             }
 
             a.prev_3 {
@@ -195,7 +195,7 @@
             <picture>
                 <source srcset="{{current.imageWebP}}" type="image/webp" >
                 <source srcset="{{current.imageJPEG}}" type="image/jpeg" >
-                <img src="{{current.imageJPEG}}">
+                <img src="{{current.imageJPEG}}" class="nofilter">
                 {{#if current.caption}}
                 <figcaption>{{current.caption.title}}</figcaption>
                 {{/if}}
