@@ -1,7 +1,7 @@
 <html>
     <head>
-        <title>{{gallery.title}}</title>
-        <link rel="prerender" href="{{navigation.nextLink}}">
+        <title>{{gallery.title}} {{navigation.index}} / {{navigation.size}}</title>
+{{#if navigation.nextLink}}        <link rel="prerender" href="{{navigation.nextLink}}">{{/if}}
         <style>
             body {
                 background-color: black;
@@ -22,8 +22,7 @@
                 left: 0;
                 overflow: hidden;
                 box-sizing: border-box;
-                padding-right: 3rem;
-                padding-bottom: 2rem;
+                padding: 1rem;
             }
 
             header {
@@ -51,7 +50,7 @@
                 align-items: center;
             }
 
-            figure {
+            picture {
                 overflow: hidden;
                 width: 100%;
                 height: 100%;
@@ -74,12 +73,12 @@
                 font-size: 1.5rem;
             }
 
-            figure:hover > img {
+            picture:hover > img {
                 transform: scale(1.1);
                 filter: none;
             }
 
-            figure > img {
+            picture > img {
                 object-fit: cover;
                 object-position: 50% 15%;
                 width: 100%;
@@ -89,63 +88,86 @@
                 filter: brightness(50%);
             }
 
-            figure:nth-child(1) {
+            picture:nth-child(1) {
                 grid-column: 2;
                 grid-row-start: 2;
                 grid-row-end: 6;
             }
 
-            figure:nth-child(1) img {
+            picture:nth-child(1) img {
                 filter: none;
             }
 
-            figure:.prev_3 {
+            a.prev_3 {
                 grid-column: 1;
                 grid-row: 2;
                 transform: rotate(3deg);
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
             }
 
-            figure.prev_2 {
+            a.prev_2 {
                 grid-column: 1;
                 grid-row: 3;
                 transform: rotate(-5deg);
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
             }
 
-            figure.prev_1 {
+            a.prev_1 {
                 grid-column: 1;
                 grid-row: 4;
                 transform: rotate(3deg);
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
             }
 
-            figure.prev_0 {
+            a.prev_0 {
                 grid-column: 1;
                 grid-row: 5;
                 transform: rotate(-5deg);
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
             }
 
-            figure.next_0 {
+            a.next_0 {
                 grid-column: 3;
                 grid-row: 2;
                 transform: rotate(-3deg);
-
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
             }
 
-            figure.next_1 {
+            a.next_1 {
                 grid-column: 3;
                 grid-row: 3;
                 transform: rotate(3deg);
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
             }
 
-            figure.next_2 {
+            a.next_2 {
                 grid-column: 3;
                 grid-row: 4;
                 transform: rotate(-6deg);
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
             }
 
-            figure.next_3 {
+            a.next_3 {
                 grid-column: 3;
                 grid-row: 5;
                 transform: rotate(4deg);
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
             }
 
             footer > span {
@@ -170,24 +192,36 @@
     </head>
     <body>
         <div>
-            <figure>
+            <picture>
+                <source srcset="{{current.imageWebP}}" type="image/webp" >
+                <source srcset="{{current.imageJPEG}}" type="image/jpeg" >
                 <img src="{{current.imageJPEG}}">
-                <figcaption>A beautiful picture</figcaption>
-            </figure>
+                {{#if current.caption}}
+                <figcaption>{{current.caption.title}}</figcaption>
+                {{/if}}
+            </picture>
             {{#each prev}}
-            <figure class="prev_{{@index}}">
-                <img src="{{imageJPEG}}">
-            </figure>
+            <a href="{{link}}" class="prev_{{@index}}">
+                <picture>
+                    <source srcset="{{imageWebP}}" type="image/webp" >
+                    <source srcset="{{imageJPEG}}" type="image/jpeg" >
+                    <img src="{{imageJPEG}}">
+                </picture>
+            </a>
             {{/each}}
             {{#each next}}
-            <figure class="next_{{@index}}">
-                <img src="{{imageJPEG}}">
-            </figure>
+            <a href="{{link}}" class="next_{{@index}}">
+                <picture>
+                    <source srcset="{{imageWebP}}" type="image/webp" >
+                    <source srcset="{{imageJPEG}}" type="image/jpeg" >
+                    <img src="{{imageJPEG}}">
+                </picture>
+            </a>
             {{/each}}
             <header>{{gallery.title}}</header>
             <footer>
-                <img class="icon download" src="https://raw.githubusercontent.com/encharm/Font-Awesome-SVG-PNG/master/white/png/48/download.png">
-                {{#if navigation.prevLink}}<a href="{{navigation.prevLink}}"><img class="icon" src="https://raw.githubusercontent.com/encharm/Font-Awesome-SVG-PNG/master/white/png/48/angle-left.png"></a>{{/if}}<span>{{navigation.index}} / {{navigation.size}}</span>{{#if navigation.nextLink}}<a href="{{navigation.nextLink}}"><img class="icon" src="https://raw.githubusercontent.com/encharm/Font-Awesome-SVG-PNG/master/white/png/48/angle-right.png"></a>{{/if}}
+                <img class="icon download" src="download.png" href="images.zip">
+                {{#if navigation.prevLink}}<a href="{{navigation.prevLink}}"><img class="icon" src="angle-left.png"></a>{{/if}}<span>{{navigation.index}} / {{navigation.size}}</span>{{#if navigation.nextLink}}<a href="{{navigation.nextLink}}"><img class="icon" src="angle-right.png"></a>{{/if}}
             </footer>
         </div>
     </body>

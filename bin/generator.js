@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require("sharp");
 const handlebars = require('handlebars')
+const zipFolder = require('zip-folder');
 const debug = require('debug')('PhotoBookGen')
 
 const outputFolder = app.configuration.outputFolder;
@@ -71,6 +72,22 @@ fs.readdir(app.configuration.imagesSourceFolder, function(error, files) {
             });
     }
 
+    console.log("Copy static assets");
+
+    fs.createReadStream(path.join('static', 'angle-left.png')).pipe(fs.createWriteStream(path.join(app.configuration.outputFolder, "angle-left.png")));
+    fs.createReadStream(path.join('static', 'angle-right.png')).pipe(fs.createWriteStream(path.join(app.configuration.outputFolder, "angle-right.png")));
+    fs.createReadStream(path.join('static', 'download.png')).pipe(fs.createWriteStream(path.join(app.configuration.outputFolder, "download.png")));
+
+    console.log("Zipping original files");
+
+    zipFolder(app.configuration.imagesSourceFolder, path.join(app.configuration.outputFolder, 'images.zip'), function(err) {
+        if(err) {
+            console.log('Zipping went wrong', err);
+        } else {
+            console.log('Zipping ok');
+        }
+    });
+
     // And finally we generate the html files
     console.log("Generating HTML files");
 
@@ -93,6 +110,7 @@ fs.readdir(app.configuration.imagesSourceFolder, function(error, files) {
                 const prevNameWithoutExtention = path.basename(sorted[j], path.extname(sorted[i]));
 
                 previousImages.push({
+                    link: htmlFilenameFor(j),
                     imageJPEG: 'images/' + prevNameWithoutExtention + "_small.jpg",
                     imageWebP: 'images/' + prevNameWithoutExtention + "_small.webp",
                 });
@@ -104,6 +122,7 @@ fs.readdir(app.configuration.imagesSourceFolder, function(error, files) {
                 const prevNameWithoutExtention = path.basename(sorted[j], path.extname(sorted[j]));
 
                 nextImages.push({
+                    link: htmlFilenameFor(j),
                     imageJPEG: 'images/' + prevNameWithoutExtention + "_small.jpg",
                     imageWebP: 'images/' + prevNameWithoutExtention + "_small.webp",
                 });
@@ -115,6 +134,7 @@ fs.readdir(app.configuration.imagesSourceFolder, function(error, files) {
                     fileName: currentFileName,
                     imageJPEG: 'images/' + nameWithoutExtention + ".jpg",
                     imageWebP: 'images/' + nameWithoutExtention + ".webp",
+                    caption: app.configuration.html.captions[sorted[i]]
                 },
                 navigation: {
                     index: (i + 1),
